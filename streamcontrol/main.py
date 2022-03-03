@@ -5,7 +5,10 @@ from crons import DailyScheduler
 def main():
     with OBSManager() as obsmgr:
         schedulers = [DailyScheduler()]
-        loop = asyncio.get_event_loop()  
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
         try:
             loop.run_forever()
         except KeyboardInterrupt:
