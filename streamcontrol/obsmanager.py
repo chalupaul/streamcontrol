@@ -86,11 +86,11 @@ class OBSManager(OBSWebSocketManager):
         else:
             self.main_counter = 0
         view_target = self.source_loop_of(self.main_counter)
-        #self.set_scene("_Main", view_target)
-        #self.set_scene("_Main", view_target, "txt")
-        #self.set_audio_for_main(view_target)
-        #self.set_scene("_Side1", self.source_loop_of(self.main_counter + 1))
-        #self.set_scene("_Side2", self.source_loop_of(self.main_counter + 2))
+        self.set_scene("_Main", view_target)
+        self.set_scene("_Main", view_target, "txt")
+        self.set_audio_for_main(view_target)
+        self.set_scene("_Side1", self.source_loop_of(self.main_counter + 1))
+        self.set_scene("_Side2", self.source_loop_of(self.main_counter + 2))
         time_of_day = "night" if self.is_night() else "day"
         log.debug("Main Scene Switch", scene_name=view_target, sources=time_of_day)
 
