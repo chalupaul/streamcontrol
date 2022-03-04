@@ -1,22 +1,27 @@
+from faulthandler import disable
 import aiocron
 import asyncio
 import datetime
 from obsmanager import OBSManager
+from location import SEGUIN
+from templates import Templates
+from location import format_time
 from types import FunctionType
 from log import LOGGER as log
 
 class BaseScheduler(object):  
     def __init__(self):
+        self.obsmgr = OBSManager()
         self._schedule()
 
     @staticmethod 
-    async def wait_until(dt, tz=datetime.timezone.utc):
+    async def wait_until(dt, tz=SEGUIN.timezone):
         """Sleep for a total seconds between now and dt (datetime)"""
         now = datetime.datetime.now(tz)
         await asyncio.sleep((dt - now).total_seconds())
 
     @staticmethod
-    async def run_at(coro, dt, tz=datetime.timezone.utc):
+    async def run_at(coro, dt, tz=SEGUIN.timezone):
         """Schedule a job for a particular time via sleeping"""
         await BaseScheduler.wait_until(dt, tz)
         return await coro()
@@ -36,11 +41,7 @@ class BaseScheduler(object):
                 log.debug("Registering cron", cron_name = func_name)
                 func_ptr(self)
 
-class DailyScheduler(BaseScheduler):
-    def __init__(self):
-        super().__init__()
-        self.obsmgr = OBSManager()
-
+class SceneRotationScheduler(BaseScheduler):
 
     def two_minute_rotator(self):    
         """Rotate the obs scene every 2 minutes"""
@@ -55,4 +56,12 @@ class DailyScheduler(BaseScheduler):
             self.obsmgr.set_today_events()
         
         
-
+class MorningChoreStreamScheduler(BaseScheduler):
+    def sunrise_chores(self):
+        """Sunrise chore stream. Schedule after solar_times()"""
+        @aiocron.crontab("30 3 * * 1-5")
+        async def morning_chore_stream():
+            template = Templates.next_event
+            event_time = format_time(self.obsmgr.sun_data["dawn"])
+            event_agenda = "Morning Chore Livestream"
+            template.render_to_file("morning_chores.txt", agenda=event_agenda, time=event_time)

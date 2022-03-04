@@ -12,6 +12,7 @@ structlog = "^21.5.0"
 colorama = "^0.4.4"
 astral = "^2.2"
 aiocron = "^1.8"
+Jinja2 = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

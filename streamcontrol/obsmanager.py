@@ -1,12 +1,13 @@
+from astral import Observer
 from dotenv import dotenv_values
 from obswebsocket import obsws, requests
 import datetime
 from astral.sun import sun
 from log import LOGGER as log
 import constants
+from config import config
 from location import SEGUIN, format_time, get_tzinfo
 from exceptions import SourceNameNotFound
-
 
 class OBSWebSocketManager(object):
     def __new__(cls):
@@ -32,11 +33,7 @@ class OBSWebSocketManager(object):
     def connect(self):
         if self.isConnected():
             return
-        config = dotenv_values()
-        obs_host = config.get("obs_host", "localhost")
-        obs_port = config.get("obs_port", 4444)
-        obs_password = config.get("obs_password", "secret")
-        self.ws = obsws(obs_host, obs_port, obs_password)
+        self.ws = obsws(config.obs_host, config.obs_port, config.obs_password)
         self.ws.connect()
     
     def disconnect(self):
@@ -49,16 +46,25 @@ class OBSManager(OBSWebSocketManager):
         if not hasattr(self, "sun_data"):
             self.set_today_events()
 
-    def set_scene(self, scene_name, source_name, source_type="cam"):
+    def set_scene(self, scene_name, source_name, source_type="cam", disable_source=False):
         sources = self.get_sources()
         if source_name not in sources:
             raise SourceNameNotFound
-        for source in sources:
+        if not disable_source:
+            for source in sources:
+                is_target = False
+                if source == source_name:
+                    is_target = True
+        else:
             is_target = False
-            if source == source_name:
-                is_target = True
             r = requests.SetSceneItemRender(f"_{source}{source_type}", is_target, scene_name=scene_name)
             self.ws.call(r)
+    
+    def enable_source_for_scene(self, scene_name, source_name):
+        self.set_scene(scene_name, source_name, source_type='')
+    
+    def disable_source_for_scene(self, scene_name, source_name):
+        self.set_scene(scene_name, source_name, source_type='', disable_source=True)
     
     def set_audio_for_main(self, source_name):
         sources = self.get_sources()
