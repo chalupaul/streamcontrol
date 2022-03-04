@@ -1,6 +1,6 @@
 from os.path import join, dirname
 from dataclasses import dataclass
-from config import config
+from streamcontrol.config import config
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 class TextTemplate(object):

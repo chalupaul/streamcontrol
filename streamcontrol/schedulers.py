@@ -2,12 +2,12 @@ from faulthandler import disable
 import aiocron
 import asyncio
 import datetime
-from obsmanager import OBSManager
-from location import SEGUIN
-from templates import Templates
-from location import format_time
+from streamcontrol.obsmanager import OBSManager
+from streamcontrol.location import SEGUIN
+from streamcontrol.templates import Templates
+from streamcontrol.location import format_time
 from types import FunctionType
-from log import LOGGER as log
+from streamcontrol.log import LOGGER as log
 
 class BaseScheduler(object):  
     def __init__(self):
@@ -59,9 +59,10 @@ class SceneRotationScheduler(BaseScheduler):
 class MorningChoreStreamScheduler(BaseScheduler):
     def sunrise_chores(self):
         """Sunrise chore stream. Schedule after solar_times()"""
-        @aiocron.crontab("30 3 * * 1-5")
+        @aiocron.crontab("* * * * 1-5")
         async def morning_chore_stream():
             template = Templates.next_event
             event_time = format_time(self.obsmgr.sun_data["dawn"])
             event_agenda = "Morning Chore Livestream"
             template.render_to_file("morning_chores.txt", agenda=event_agenda, time=event_time)
+            log.debug("Updating event time", agenda=event_agenda, time=event_time)

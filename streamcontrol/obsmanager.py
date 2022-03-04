@@ -1,13 +1,10 @@
-from astral import Observer
-from dotenv import dotenv_values
 from obswebsocket import obsws, requests
 import datetime
-from astral.sun import sun
-from log import LOGGER as log
-import constants
-from config import config
-from location import SEGUIN, format_time, get_tzinfo
-from exceptions import SourceNameNotFound
+from streamcontrol.log import LOGGER as log
+from streamcontrol import constants
+from streamcontrol.config import config
+from streamcontrol.location import SEGUIN, format_time, get_suntime
+from streamcontrol.exceptions import SourceNameNotFound
 
 class OBSWebSocketManager(object):
     def __new__(cls):
@@ -57,8 +54,10 @@ class OBSManager(OBSWebSocketManager):
                     is_target = True
         else:
             is_target = False
-            r = requests.SetSceneItemRender(f"_{source}{source_type}", is_target, scene_name=scene_name)
-            self.ws.call(r)
+        if not source.startswith('_'):
+            source = f"_{source}"
+        r = requests.SetSceneItemRender(f"{source}{source_type}", is_target, scene_name=scene_name)
+        self.ws.call(r)
     
     def enable_source_for_scene(self, scene_name, source_name):
         self.set_scene(scene_name, source_name, source_type='')
@@ -116,8 +115,7 @@ class OBSManager(OBSWebSocketManager):
         return sources
 
     def set_today_events(self):
-        self.sun_data = sun(SEGUIN.observer, date=datetime.date.today(), tzinfo=SEGUIN.timezone)
-        self.sun_data["tzinfo"] = SEGUIN.tzinfo
+        self.sun_data = get_suntime(datetime.date.today())
 
         log.info(f"Setting today's events", 
             dawn=format_time(self.sun_data["dawn"]), 

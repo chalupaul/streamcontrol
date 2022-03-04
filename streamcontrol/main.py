@@ -1,6 +1,6 @@
 import asyncio
-import schedulers
-from log import LOGGER as log
+from streamcontrol import schedulers
+from streamcontrol.log import LOGGER as log
 
 def get_schedulers():
     """Finds a bunch of scheduler classes within the schedulers module"""
@@ -30,5 +30,3 @@ def main():
         pass
     finally:
         loop.close()
-
-main()
