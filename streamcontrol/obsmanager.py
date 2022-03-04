@@ -47,18 +47,15 @@ class OBSManager(OBSWebSocketManager):
         sources = self.get_sources()
         if source_name not in sources:
             raise SourceNameNotFound
-        if not disable_source:
-            for source in sources:
-                is_target = False
-                if source == source_name:
-                    is_target = True
-        else:
+        for source in sources:
             is_target = False
-        if not source.startswith('_'):
-            source = f"_{source}"
-        r = requests.SetSceneItemRender(f"{source}{source_type}", is_target, scene_name=scene_name)
-        self.ws.call(r)
-    
+            if source == source_name and not disable_source:
+                is_target = True
+            if not source.startswith('_'):
+                source = f"_{source}"
+            r = requests.SetSceneItemRender(f"{source}{source_type}", is_target, scene_name=scene_name)
+            self.ws.call(r)
+
     def enable_source_for_scene(self, scene_name, source_name):
         self.set_scene(scene_name, source_name, source_type='')
     

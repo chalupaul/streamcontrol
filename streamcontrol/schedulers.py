@@ -59,7 +59,7 @@ class SceneRotationScheduler(BaseScheduler):
 class MorningChoreStreamScheduler(BaseScheduler):
     def sunrise_chores(self):
         """Sunrise chore stream. Schedule after solar_times()"""
-        @aiocron.crontab("* * * * 1-5")
+        @aiocron.crontab("10 3 * * 1-5")
         async def morning_chore_stream():
             template = Templates.next_event
             event_time = format_time(self.obsmgr.sun_data["dawn"])
