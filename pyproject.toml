@@ -49,4 +49,6 @@ exclude = '''
 app = "streamcontrol.main:main"
 
 [tool.taskipy.tasks]
-tests = """pytest --cov-report term-missing --cov=streamcontrol tests"""
+pre_test = "task gate"
+test = """pytest --cov-report term-missing --cov=streamcontrol tests"""
+gate = """doit"""

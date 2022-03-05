@@ -25,3 +25,6 @@ def task_flake8():
             )
         ]
     )
+
+def task_isort():
+    return _build_action(["isort ."])
