@@ -15,11 +15,38 @@ aiocron = "^1.8"
 Jinja2 = "^3.0.3"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^7.0.1"
+pytest-mock = "^3.7.0"
+pytest-cov = "^3.0.0"
+taskipy = "^1.10.1"
+black = "^22.1.0"
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+bandit = "^1.7.4"
+doit = "^0.34.2"
+toml = "^0.10.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.isort]
+profile = "black"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+  | \.git
+  | .venv
+  | .coverage
+  | __pycache__
+)/
+'''
+
 [tool.poetry.scripts]
 app = "streamcontrol.main:main"
+
+[tool.taskipy.tasks]
+tests = """pytest --cov-report term-missing --cov=streamcontrol tests"""

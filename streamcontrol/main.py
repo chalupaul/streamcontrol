@@ -1,6 +1,8 @@
 import asyncio
+
 from streamcontrol import schedulers
 from streamcontrol.log import LOGGER as log
+
 
 def get_schedulers():
     """Finds a bunch of scheduler classes within the schedulers module"""
@@ -13,6 +15,7 @@ def get_schedulers():
         if has_base_class and base_class in member_class.__bases__:
             found_schedulers.append(member_class)
     return found_schedulers
+
 
 def main():
     try:

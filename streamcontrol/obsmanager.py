@@ -1,29 +1,33 @@
-from obswebsocket import obsws, requests
 import datetime
-from streamcontrol.log import LOGGER as log
+
+from obswebsocket import obsws, requests
+
 from streamcontrol import constants
 from streamcontrol.config import config
-from streamcontrol.location import SEGUIN, format_time, get_suntime
 from streamcontrol.exceptions import SourceNameNotFound
+from streamcontrol.location import format_time, get_suntime
+from streamcontrol.log import LOGGER as log
+
 
 class OBSWebSocketManager(object):
     def __new__(cls):
-        if not hasattr(cls, 'instance'):
+        if not hasattr(cls, "instance"):
             cls.instance = super(OBSWebSocketManager, cls).__new__(cls)
         return cls.instance
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.disconnect()
 
     def __init__(self):
         if not self.isConnected():
             self.connect()
-    
+
     def isConnected(self):
-        has_ws = hasattr(self, 'ws') and self.ws is not None
-        if (has_ws):
+        has_ws = hasattr(self, "ws") and self.ws is not None
+        if has_ws:
             return True
         return False
 
@@ -32,18 +36,21 @@ class OBSWebSocketManager(object):
             return
         self.ws = obsws(config.obs_host, config.obs_port, config.obs_password)
         self.ws.connect()
-    
+
     def disconnect(self):
         if self.isConnected():
             self.ws.disconnect()
 
-class OBSManager(OBSWebSocketManager):  
+
+class OBSManager(OBSWebSocketManager):
     def __init__(self):
         super().__init__()
         if not hasattr(self, "sun_data"):
             self.set_today_events()
 
-    def set_scene(self, scene_name, source_name, source_type="cam", disable_source=False):
+    def set_scene(
+        self, scene_name, source_name, source_type="cam", disable_source=False
+    ):
         sources = self.get_sources()
         if source_name not in sources:
             raise SourceNameNotFound
@@ -51,17 +58,19 @@ class OBSManager(OBSWebSocketManager):
             is_target = False
             if source == source_name and not disable_source:
                 is_target = True
-            if not source.startswith('_'):
+            if not source.startswith("_"):
                 source = f"_{source}"
-            r = requests.SetSceneItemRender(f"{source}{source_type}", is_target, scene_name=scene_name)
+            r = requests.SetSceneItemRender(
+                f"{source}{source_type}", is_target, scene_name=scene_name
+            )
             self.ws.call(r)
 
     def enable_source_for_scene(self, scene_name, source_name):
-        self.set_scene(scene_name, source_name, source_type='')
-    
+        self.set_scene(scene_name, source_name, source_type="")
+
     def disable_source_for_scene(self, scene_name, source_name):
-        self.set_scene(scene_name, source_name, source_type='', disable_source=True)
-    
+        self.set_scene(scene_name, source_name, source_type="", disable_source=True)
+
     def set_audio_for_main(self, source_name):
         sources = self.get_sources()
         if source_name not in sources:
@@ -98,8 +107,12 @@ class OBSManager(OBSWebSocketManager):
 
     def is_night(self):
         # If the event fires at dawn, we want day. If it's at dusk, we want night
-        before_dawn = datetime.datetime.now(self.sun_data["tzinfo"]) < self.sun_data["dawn"]
-        after_dusk = datetime.datetime.now(self.sun_data["tzinfo"]) >= self.sun_data["dusk"]
+        before_dawn = (
+            datetime.datetime.now(self.sun_data["tzinfo"]) < self.sun_data["dawn"]
+        )
+        after_dusk = (
+            datetime.datetime.now(self.sun_data["tzinfo"]) >= self.sun_data["dusk"]
+        )
         if before_dawn or after_dusk:
             return True
         return False
@@ -114,8 +127,10 @@ class OBSManager(OBSWebSocketManager):
     def set_today_events(self):
         self.sun_data = get_suntime(datetime.date.today())
 
-        log.info(f"Setting today's events", 
-            dawn=format_time(self.sun_data["dawn"]), 
-            sunrise=format_time(self.sun_data["sunrise"]), 
-            sunset=format_time(self.sun_data["sunset"]), 
-            dusk=format_time(self.sun_data["dusk"]))
+        log.info(
+            "Setting today's events",
+            dawn=format_time(self.sun_data["dawn"]),
+            sunrise=format_time(self.sun_data["sunrise"]),
+            sunset=format_time(self.sun_data["sunset"]),
+            dusk=format_time(self.sun_data["dusk"]),
+        )
