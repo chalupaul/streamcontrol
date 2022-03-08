@@ -51,7 +51,7 @@ class OBSManager(OBSWebSocketManager):
     def set_scene(
         self, scene_name, source_name, source_type="cam", disable_source=False
     ):
-        sources = self.get_sources()
+        sources = self.get_sources(all=True)
         if source_name not in sources:
             raise SourceNameNotFound
         for source in sources:
@@ -117,11 +117,14 @@ class OBSManager(OBSWebSocketManager):
             return True
         return False
 
-    def get_sources(self):
-        if self.is_night():
-            sources = constants.NIGHT_SOURCES
+    def get_sources(self, all=False):
+        if all:
+            sources = list(set(constants.NIGHT_SOURCES + constants.DAY_SOURCES))
         else:
-            sources = constants.DAY_SOURCES
+            if self.is_night():
+                sources = constants.NIGHT_SOURCES
+            else:
+                sources = constants.DAY_SOURCES
         return sources
 
     def set_today_events(self):
