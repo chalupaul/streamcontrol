@@ -27,10 +27,50 @@ def test_obs_websocket_manager_init(get_handler, mocker):
     """Should connect websocket if not connected"""
     ows = get_handler(target_module)
     init_mock = mocker.Mock()
-    init_mock.isConnected.return_value = False
+    init_mock.is_connected.return_value = False
     ows.OBSWebSocketManager.__init__(init_mock)
     assert init_mock.connect.called
     init_mock.reset_mock()
-    init_mock.isConnected.return_value = True
+    init_mock.is_connected.return_value = True
     ows.OBSWebSocketManager.__init__(init_mock)
     assert init_mock.connect.called is False
+
+
+def test_obs_websocket_manager_is_connected(get_handler, mocker):
+    ows = get_handler(target_module)
+    connect_mock = mocker.Mock()
+    """Should return true if connected"""
+    assert ows.OBSWebSocketManager.is_connected(connect_mock)
+    """Should return false if None"""
+    connect_mock.ws = None
+    assert not ows.OBSWebSocketManager.is_connected(connect_mock)
+    """Should return false if ws not found"""
+    mocker.patch.object(ows, "hasattr", return_value=False)
+    assert not ows.OBSWebSocketManager.is_connected(connect_mock)
+
+
+def test_obs_websocket_manager_connect(get_handler, mocker):
+    ows = get_handler(target_module)
+    ws_mock = mocker.Mock()
+    mocker.patch.object(ows, "obsws", return_value=ws_mock)
+    """Should not connect if already connected"""
+    ws_mock.is_connected.return_value = True
+    ows.OBSWebSocketManager.connect(ws_mock)
+    ws_mock.ws.connect.assert_not_called()
+    """Should connect if not connected"""
+    ws_mock.is_connected.return_value = False
+    ows.OBSWebSocketManager.connect(ws_mock)
+    ws_mock.ws.connect.assert_called()
+
+
+def test_obs_websocket_manager_disconnect(get_handler, mocker):
+    ows = get_handler(target_module)
+    disconnect_mock = mocker.Mock()
+    """Should not not disconnect if not connected"""
+    disconnect_mock.is_connected.return_value = False
+    ows.OBSWebSocketManager.disconnect(disconnect_mock)
+    disconnect_mock.ws.disconnect.assert_not_called()
+    """Should disconnect if connected"""
+    disconnect_mock.is_connected.return_value = True
+    ows.OBSWebSocketManager.disconnect(disconnect_mock)
+    disconnect_mock.ws.disconnect.assert_called()

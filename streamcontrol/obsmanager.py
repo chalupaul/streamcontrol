@@ -22,23 +22,23 @@ class OBSWebSocketManager(object):
         self.disconnect()
 
     def __init__(self):
-        if not self.isConnected():
+        if not self.is_connected():
             self.connect()
 
-    def isConnected(self):
+    def is_connected(self):
         has_ws = hasattr(self, "ws") and self.ws is not None
         if has_ws:
             return True
         return False
 
     def connect(self):
-        if self.isConnected():
+        if self.is_connected():
             return
         self.ws = obsws(config.obs_host, config.obs_port, config.obs_password)
         self.ws.connect()
 
     def disconnect(self):
-        if self.isConnected():
+        if self.is_connected():
             self.ws.disconnect()
 
 
